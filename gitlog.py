@@ -8,9 +8,7 @@ from openai import OpenAI
 client = OpenAI()
 
 def get_git_log(since_date=None, range_commits=None, author=None, grep=None):
-    git_command = ['git', 'log', '--color', '--date=local',
-                   "--pretty=format:'%C(red)%h%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(magenta)(%cd) %C(bold blue)<%an>%C(reset)'",
-                   '--graph']
+    git_command = ['git', 'log', '--pretty=format:%s%n%b%n---']
 
     # filter on date
     if since_date:
@@ -20,7 +18,7 @@ def get_git_log(since_date=None, range_commits=None, author=None, grep=None):
     if range_commits:
         git_command.extend([range_commits])
 
-    #  filter on author
+    # filter on author
     if author:
         git_command.extend(['--author', author])
 
