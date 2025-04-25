@@ -10,7 +10,7 @@ client = OpenAI()
 
 def stage_all_changes():
     try:
-        subprocess.run(['git', 'add', '.'], check=True)
+        subprocess.run(['git', 'add', '--all'], check=True)
         print("All changes have been staged.")
     except subprocess.CalledProcessError as e:
         print(f"Error occurred while staging changes: {e.stderr}")
