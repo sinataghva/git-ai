@@ -1,128 +1,111 @@
 # Git Automation Scripts
 
-This repository contains two Python scripts that help automate Git operations using the OpenAI API: `gitlog.py` and `gitcommit.py`. These scripts simplify generating human-readable release notes and commit messages by leveraging the power of AI.
+This repository contains Python scripts to automate Git workflows using the OpenAI API:
+
+* **`gitlog.py`**: Generate human-readable release notes.
+* **`gitcommit.py`** (now via **`gitcommit_hook.py`**): Automatically draft commit messages.
 
 ## Disclaimer
 
-These scripts are provided as a proof of concept to demonstrate what is possible. There is no guarantee that they will work exactly as intended. Users are responsible for any consequences of sending their code diffs or commit messages to the OpenAI API. Use these scripts at your own risk, especially on sensitive projects. Users should provide their own OpenAI API key and respect their organization's AI policies regarding the use of AI tools.
+These scripts are provided as a proof of concept. There is no guarantee they will work exactly as intended. Users are responsible for any consequences of sending code diffs or commit messages to the OpenAI API. Use at your own risk, and ensure you comply with your organization’s AI and security policies.
 
 ## Scripts Overview
 
 ### `gitlog.py`
 
-This script generates a non-technical, human-readable summary of Git commits for inclusion in release notes. It uses the OpenAI API to convert technical commit details into concise summaries understandable by non-technical users.
+Generates a non-technical, human-readable summary of Git commits for release notes.
 
 #### Features
-- Fetches Git log entries with custom formatting.
-- Generates a clear and concise summary of the commits.
-- Allows filtering commits by date, commit range, author, or grep pattern.
-- Can generate technical summaries for release notes.
-- Designed for inclusion in release notes for internal use.
+
+* Fetch commits by date, range, author, or grep pattern.
+* Produce clear summaries for non-technical audiences.
+* Optional technical summaries.
 
 #### Usage
 
-1. Run the script in your repository:
+```sh
+python gitlog.py [--since-date YYYY-MM-DD] [--range A..B] [--author "Name"] [--grep "pattern"] [--technical]
+```
 
-    - To get commits since a specific date:
+### `gitcommit.py` (Legacy CLI)
 
-        ```sh
-        python gitlog.py --since-date 2023-01-01
-        ```
+Stages changes, uses OpenAI to draft a commit message, and lets you:
 
-    - To get commits within a specific range:
-
-        ```sh
-        python gitlog.py --range start_commit..end_commit
-        ```
-
-    - To get commits by a specific author:
-
-        ```sh
-        python gitlog.py --author "John Doe"
-        ```
-
-    - To get commits with a specific grep pattern:
-
-        ```sh
-        python gitlog.py --grep "BUGFIX"
-        ```
-
-    - To generate a technical summary:
-
-        ```sh
-        python gitlog.py --technical
-        ```
-
-### `gitcommit.py`
-
-This script generates concise and precise commit messages based on the changes in your Git repository. It stages all changes, generates a commit message using the OpenAI API, and allows you to review, edit, or abort the commit process.
-
-#### Features
-- Stages all changes (`git add .`).
-- Generates a commit message based on the Git diff.
-- Allows reviewing and editing the generated commit message.
-- Aborts the commit and unstages all changes if needed.
+1. **Accept** the generated message.
+2. **Edit** it in your editor.
+3. **Abort**, unstaging all changes.
 
 #### Usage
 
-1. Run the script in your repository:
+```sh
+python gitcommit.py
+```
 
-    ```sh
-    python gitcommit.py
-    ```
+---
 
-2. Review the commit message:
-    - The script will generate a commit message and prompt you to:
-        - Use the generated commit message.
-        - Edit the commit message in your default text editor.
-        - Abort the commit.
+### `gitcommit_hook.py` (Prepare-commit-msg Hook)
 
-3. **Editing in `nano`**:
-    - If you choose to edit, `nano` will open with the generated commit message.
-    - To abort during editing, exit `nano` without saving changes (Ctrl + X, then N).
+A single-file Git hook that auto-fills your commit message buffer using AI when you run `git commit` without `-m`.
 
-4. **Abort Handling**: If you abort, the script will unstage all changes.
+#### Installation
 
-## Setting Up
+##### Per-repo
 
-1. **Install Python**: Ensure you have Python installed on your system.
-2. **Install OpenAI Client and python-dotenv**: Install the OpenAI Python client library and `python-dotenv` which helps in loading environment variables from a `.env` file.
+1. Copy this file to your repo’s hooks folder:
 
-    ```sh
-    pip install openai python-dotenv
-    ```
+   ```sh
+   cp gitcommit_hook.py .git/hooks/prepare-commit-msg
+   chmod +x .git/hooks/prepare-commit-msg
+   ```
 
-3. **Set OpenAI API Key**: Copy the `.env.example` file to `.env` and add your OpenAI API key:
+2. Run in your repo as usual:
 
-    ```sh
-    cp .env.example .env
-    ```
+   ```sh
+   git add .
+   git commit
+   ```
 
-    Edit the `.env` file to add your OpenAI API key:
+   Your editor will open with an AI-generated draft.
 
-    ```plaintext
-    OPENAI_API_KEY=your-api-key
-    ```
+##### Global
 
-### macOS Users
+1. Create a global hooks directory:
 
-If you are using macOS, you may need to use `python3` and `pip3` instead of `python` and `pip`. Additionally, since the Python environment can be managed by the OS, it is recommended to create a virtual environment before installing packages.
+   ```sh
+   mkdir -p ~/.githooks
+   cp gitcommit_hook.py ~/.githooks/prepare-commit-msg
+   chmod +x ~/.githooks/prepare-commit-msg
+   git config --global core.hooksPath ~/.githooks
+   ```
 
-1. **Create a Virtual Environment**:
+2. Use `git commit` anywhere without `-m`:
 
-    ```sh
-    python3 -m venv venv
-    ```
+   ```sh
+   git add .
+   git commit
+   ```
 
-2. **Activate the Virtual Environment**:
+> **Note:** The hook only runs when no commit message is provided (no `-m`, `-t`, merge, or squash). To skip it, use `git commit -m "msg"` or `--no-verify`.
 
-    ```sh
-    source venv/bin/activate
-    ```
+## Prerequisites
 
-3. **Install OpenAI Client and python-dotenv**:
+* Python 3.7+
+* OpenAI Python client: `pip install openai`
 
-    ```sh
-    pip3 install openai python-dotenv
-    ```
+### Environment
 
+Set your OpenAI API key in your shell:
+
+```sh
+export OPENAI_API_KEY="sk-..."
+```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+[MIT License](LICENSE)
